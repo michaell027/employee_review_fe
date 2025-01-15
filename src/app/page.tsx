@@ -1,16 +1,16 @@
 import { Divider } from "./components/divider";
 
 const links = [
-  { name: "Open roles", href: "#" },
-  { name: "Internship program", href: "#" },
-  { name: "Our values", href: "#" },
-  { name: "Meet our leadership", href: "#" },
+  { name: "Add company", href: "#" },
+  { name: "Fill information", href: "#" },
+  { name: "Add employees", href: "#" },
+  { name: "Generate review", href: "#" },
 ];
 
 export default function Example() {
   return (
     <div
-      className="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32 w-full"
+      className="relative isolate overflow-y-auto overflow-x-hidden bg-gray-900 py-16 sm:py-24 w-full"
       style={{ height: "calc(100vh - 80px)" }}
     >
       <div
@@ -40,11 +40,13 @@ export default function Example() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:mx-0">
           <h2 className="text-5xl font-semibold tracking-tight text-white sm:text-7xl">
-            Save your time!
+            Streamline Your Team Management
           </h2>
-          <p className="mt-8 text-pretty text-lg font-medium text-gray-300 sm:text-xl/8">
-            Generate review for your employees in a few clicks and focus on what
-            really matters.
+          <p className="mt-8 text-pretty font-medium text-gray-300 sm:text-xl/8">
+            Save time and simplify the employee review process. Our application
+            allows you to quickly create personalized reviews for your employees
+            based on their roles. Simply answer a few straightforward questions,
+            and let our technology handle the rest.
           </p>
         </div>
         <div className="mx-auto max-w-2xl lg:mx-0">
@@ -55,7 +57,9 @@ export default function Example() {
             {links.map((link) => (
               <a key={link.name} href={link.href} className="text-center">
                 {link.name}
-                <span aria-hidden="true">&rarr;</span>
+                <span className="pl-2" aria-hidden="true">
+                  &rarr;
+                </span>
               </a>
             ))}
           </div>
