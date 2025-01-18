@@ -29,9 +29,13 @@ body {
     @apply mt-8 text-pretty font-medium sm:text-xl/8;
   }
 
+  .body-height {
+    min-height: calc(100vh - 80px)
+  }
+
   .clip-background {
     @apply relative isolate overflow-y-auto overflow-x-hidden bg-gray-900 py-16 sm:py-24 w-full;
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
   }
 
   .clip-background-color-first {
@@ -50,5 +54,18 @@ body {
 
   .clip-background-color-second-holder {
     @apply absolute -top-52 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl sm:top-[-28rem] sm:ml-16 sm:translate-x-0 sm:transform-gpu w-full h-full;
+  }
+
+  @keyframes bounce-horizontal {
+    0%, 100% {
+      transform: translateX(-10px);
+    }
+    50% {
+      transform: translateX(10px);
+    }
+  }
+
+  .animate-bounce-horizontal {
+    animation: bounce-horizontal 2s infinite;
   }
 }
