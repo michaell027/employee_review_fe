@@ -1,4 +1,4 @@
-import { Divider } from "./components/divider";
+import { Divider } from "@/components/divider";
 
 const links = [
   { name: "Add company", href: "#" },
