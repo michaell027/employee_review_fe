@@ -104,9 +104,9 @@ export default function Header() {
                 {products.map((item) => (
                   <div
                     key={item.name}
-                    className="group relative flex items-center gap-x-6 rounded-lg p-4 text-sm/6 hover:bg-gray-50"
+                    className="group relative flex items-center gap-x-6 rounded-md p-4 text-sm/6 hover:bg-gray-50"
                   >
-                    <div className="flex size-11 flex-none items-center justify-center rounded-lg bg-gray-50 group-hover:bg-white">
+                    <div className="flex size-11 flex-none items-center justify-center rounded-md bg-gray-50 group-hover:bg-white">
                       <item.icon
                         aria-hidden="true"
                         className="size-6 text-gray-600 group-hover:text-indigo-600"
@@ -174,7 +174,7 @@ export default function Header() {
             <div className="-my-6 divide-y divide-gray-500/10">
               <div className="space-y-2 py-6">
                 <Disclosure as="div" className="-mx-3">
-                  <DisclosureButton className="group flex w-full items-center justify-between rounded-lg py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
+                  <DisclosureButton className="group flex w-full items-center justify-between rounded-md py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
                     Product
                     <ChevronDownIcon
                       aria-hidden="true"
@@ -184,19 +184,19 @@ export default function Header() {
                 </Disclosure>
                 <a
                   href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  className="-mx-3 block rounded-md px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                 >
                   Features
                 </a>
                 <a
                   href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  className="-mx-3 block rounded-md px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                 >
                   Marketplace
                 </a>
                 <a
                   href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  className="-mx-3 block rounded-md px-3 py-2 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                 >
                   Company
                 </a>
@@ -204,7 +204,7 @@ export default function Header() {
               <div className="py-6">
                 <a
                   href="#"
-                  className="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
+                  className="-mx-3 block rounded-md px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
                 >
                   Log in
                 </a>
