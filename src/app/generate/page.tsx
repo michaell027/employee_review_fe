@@ -78,7 +78,7 @@ export default function Generate() {
               <h1 className="text-4xl font-bold text-left tracking-wide">
                 Keep your team on track...
               </h1>
-              <p className="text-xl my-6">
+              <p className="mt-8 text-xl my-6">
                 Please respond to the questions about your employee to generate
                 a review, then click the button below.
               </p>
@@ -140,7 +140,7 @@ export default function Generate() {
               <h1 className="text-2xl font-bold text-left tracking-wide">
                 Generated review:
               </h1>
-              <p className="text-lg mt-4 mb-8">
+              <p className="text-lg my-8">
                 Here&#39;s the generated review for your employee. If you want
                 to make changes, use the &#39;Request Changes&#39; button below
                 the review and start a chat with the AI model.
