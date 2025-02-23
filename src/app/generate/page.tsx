@@ -4,8 +4,12 @@ import OllamaFooter from "@/components/ollama-footer";
 import Loading from "@/components/loading";
 import LineDivider from "@/components/line-divider";
 import Chat from "@/components/chat";
+import { Question } from "@/libs/types/question";
+import { getQuestionsByEmployeeId } from "@/libs/api/questions-service";
+import Error from "@/components/error";
 
 enum State {
+  GeneratingQuestionsError = -1,
   LoadingQuestions = 0,
   QuestionsLoaded = 1,
   GeneratingReview = 2,
@@ -13,39 +17,35 @@ enum State {
   Chatting = 4,
 }
 
-const questions = [
-  {
-    question: "What is the employee's name?",
-    placeholder: "Here write your response...",
-  },
-  {
-    question: "What is the employee's role?",
-    placeholder: "Here write your response...",
-  },
-  {
-    question: "What are the employee's responsibilities?",
-    placeholder: "Here write your response...",
-  },
-  {
-    question: "What are the employee's strengths?",
-    placeholder: "Here write your response...",
-  },
-  {
-    question: "What are the employee's weaknesses?",
-    placeholder: "Here write your response...",
-  },
-];
-
 export default function Generate() {
   const [state, setState] = useState<State>(State.LoadingQuestions);
   const [generatedReview, setGeneratedReview] = useState<string>("");
+  const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
+  const [error, setError] = useState<string>("");
+
+  const employeeId = 1;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const fetchQuestions = async () => {
+      if (!employeeId) {
+        setError("Employee ID not found.");
+        setState(State.GeneratingQuestionsError);
+        return;
+      }
+      const data: Question[] | null =
+        await getQuestionsByEmployeeId(employeeId);
+      if (!data) {
+        setError("Error fetching questions. Please try again later.");
+        setState(State.GeneratingQuestionsError);
+        return;
+      }
+      setGeneratedQuestions(data);
+    };
+
+    fetchQuestions().then(() => {
       setState(State.QuestionsLoaded);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    });
+  }, [employeeId]);
 
   const handleGenerateReview = () => {
     setState(State.GeneratingReview);
@@ -62,7 +62,10 @@ export default function Generate() {
   };
 
   return (
-    <section className="min-h-fit flex flex-col items-stretch text-white bg-white">
+    <section
+      suppressHydrationWarning={true}
+      className="min-h-fit flex flex-col items-stretch text-white bg-white"
+    >
       <div className="lg:flex w-full lg:px-64 clip-background items-center">
         <div aria-hidden="true" className="clip-background-color-first-holder">
           <div className="clip-background-color-first" />
@@ -73,7 +76,8 @@ export default function Generate() {
         <div className="w-full px-24 z-10">
           {(state === State.LoadingQuestions ||
             state === State.QuestionsLoaded ||
-            state === State.GeneratingReview) && (
+            state === State.GeneratingReview ||
+            state === State.GeneratingQuestionsError) && (
             <>
               <h1 className="text-4xl font-bold text-left tracking-wide">
                 Keep your team on track...
@@ -83,18 +87,23 @@ export default function Generate() {
                 a review, then click the button below.
               </p>
               <LineDivider />
+              {state === State.GeneratingQuestionsError && (
+                <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
+                  <Error message={error} />
+                </div>
+              )}
               {state === State.LoadingQuestions && <Loading />}
               {(state === State.QuestionsLoaded ||
                 state === State.GeneratingReview) && (
                 <>
-                  {questions.map((q, idx) => (
+                  {generatedQuestions.map((q, idx) => (
                     <div key={idx}>
-                      <p className="text-lg mt-6 mb-2">{q.question}</p>
+                      <p className="text-lg mt-6 mb-2">{q}</p>
                       <div className="pb-2">
                         <textarea
                           name={`question_${idx}`}
                           id={`question_${idx}`}
-                          placeholder={q.placeholder}
+                          placeholder="Enter your response here..."
                           rows={2}
                           className="block text-black w-full p-2 rounded-md"
                         />
