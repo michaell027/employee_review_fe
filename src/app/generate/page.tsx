@@ -34,17 +34,18 @@ export default function Generate() {
       }
       const data: Question[] | null =
         await getQuestionsByEmployeeId(employeeId);
-      if (!data) {
-        setError("Error fetching questions. Please try again later.");
+
+      console.log(data);
+      if (data === null) {
+        setError("Failed to generate questions.");
         setState(State.GeneratingQuestionsError);
         return;
       }
       setGeneratedQuestions(data);
+      setState(State.QuestionsLoaded);
     };
 
-    fetchQuestions().then(() => {
-      setState(State.QuestionsLoaded);
-    });
+    fetchQuestions().then(() => {});
   }, [employeeId]);
 
   const handleGenerateReview = () => {

@@ -15,8 +15,7 @@ const getQuestionsByEmployeeId = async (
       params: { employee_id: employeeId },
     });
     return response.data;
-  } catch (error) {
-    console.error("Error fetching questions:", error);
+  } catch {
     return null;
   }
 };
