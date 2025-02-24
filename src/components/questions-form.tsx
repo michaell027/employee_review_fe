@@ -1,5 +1,6 @@
 import { State } from "@/app/generate/page";
 import { Question } from "@/libs/types/question";
+import { useForm } from "react-hook-form";
 
 interface QuestionsFormProps {
   state: State;
@@ -12,19 +13,37 @@ export default function QuestionsForm({
   generatedQuestions,
   handleGenerateReview,
 }: QuestionsFormProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const onSubmit = async (data: Record<string, string>) => {
+    console.log(data);
+    handleGenerateReview();
+  };
+
   return (
-    <>
+    <form onSubmit={handleSubmit(onSubmit)}>
       {generatedQuestions.map((q, idx) => (
         <div key={idx}>
           <p className="text-lg mt-6 mb-2">{q}</p>
           <div className="pb-2">
             <textarea
-              name={`question_${idx}`}
               id={`question_${idx}`}
               placeholder="Enter your response here..."
               rows={2}
-              className="block text-black w-full p-2 rounded-md"
+              className={`block text-black w-full p-2 rounded-md ${errors[`question_${idx}`] ? "border-red-500" : ""}`}
+              {...register(`question_${idx}`, {
+                required: "This field is required",
+              })}
             />
+            {errors[`question_${idx}`] && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors[`question_${idx}`]?.message as string}
+              </p>
+            )}
           </div>
         </div>
       ))}
@@ -49,7 +68,8 @@ export default function QuestionsForm({
           </svg>
         </div>
         <button
-          onClick={handleGenerateReview}
+          type="submit"
+          // onClick={handleGenerateReview}
           className="bg-white mb-8 text-black px-4 py-2 rounded-md"
           disabled={state === State.GeneratingReview}
         >
@@ -58,6 +78,6 @@ export default function QuestionsForm({
             : "Generate Review"}
         </button>
       </div>
-    </>
+    </form>
   );
 }
