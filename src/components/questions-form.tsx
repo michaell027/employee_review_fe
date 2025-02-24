@@ -1,6 +1,6 @@
-import { State } from "@/app/generate/page";
 import { Question } from "@/libs/types/question";
 import { useForm } from "react-hook-form";
+import State from "@/libs/enums/state";
 
 interface QuestionsFormProps {
   state: State;

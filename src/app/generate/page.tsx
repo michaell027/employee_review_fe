@@ -3,21 +3,12 @@ import { useEffect, useState } from "react";
 import OllamaFooter from "@/components/ollama-footer";
 import Loading from "@/components/loading";
 import LineDivider from "@/components/line-divider";
-import Chat from "@/components/chat";
 import { Question } from "@/libs/types/question";
 import { getQuestionsByEmployeeId } from "@/libs/api/questions-service";
 import Error from "@/components/error";
 import QuestionsForm from "@/components/questions-form";
 import ReviewHandler from "@/components/review-handler";
-
-export enum State {
-  GeneratingQuestionsError = -1,
-  LoadingQuestions = 0,
-  QuestionsLoaded = 1,
-  GeneratingReview = 2,
-  ReviewGenerated = 3,
-  Chatting = 4,
-}
+import State from "@/libs/enums/state";
 
 export default function Generate() {
   const [state, setState] = useState<State>(State.LoadingQuestions);

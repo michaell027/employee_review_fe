@@ -1,6 +1,6 @@
 import LineDivider from "@/components/line-divider";
 import Chat from "@/components/chat";
-import { State } from "@/app/generate/page";
+import State from "@/libs/enums/state";
 
 interface ReviewHandlerProps {
   state: State;
