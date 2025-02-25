@@ -1,6 +1,7 @@
 import { Question } from "@/libs/types/question";
 import { useForm } from "react-hook-form";
 import State from "@/libs/enums/state";
+import { Evaluation } from "@/libs/interfaces/evaluation";
 
 interface QuestionsFormProps {
   state: State;
@@ -20,7 +21,14 @@ export default function QuestionsForm({
   } = useForm();
 
   const onSubmit = async (data: Record<string, string>) => {
-    console.log(data);
+    const evaluation: Evaluation = {
+      evaluation: generatedQuestions.map((q, idx) => ({
+        question: q,
+        answer: data[`question_${idx}`] || "",
+      })),
+    };
+
+    console.log(evaluation);
     handleGenerateReview();
   };
 
@@ -69,7 +77,6 @@ export default function QuestionsForm({
         </div>
         <button
           type="submit"
-          // onClick={handleGenerateReview}
           className="bg-white mb-8 text-black px-4 py-2 rounded-md"
           disabled={state === State.GeneratingReview}
         >
