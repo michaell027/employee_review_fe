@@ -1,4 +1,5 @@
 enum State {
+  GeneratingReviewError = -2,
   GeneratingQuestionsError = -1,
   LoadingQuestions = 0,
   QuestionsLoaded = 1,

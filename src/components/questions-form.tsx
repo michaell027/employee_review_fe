@@ -6,7 +6,7 @@ import { Evaluation } from "@/libs/interfaces/evaluation";
 interface QuestionsFormProps {
   state: State;
   generatedQuestions: Question[];
-  handleGenerateReview: () => void;
+  handleGenerateReview: (evaluation: Evaluation) => void;
 }
 
 export default function QuestionsForm({
@@ -28,8 +28,7 @@ export default function QuestionsForm({
       })),
     };
 
-    console.log(evaluation);
-    handleGenerateReview();
+    handleGenerateReview(evaluation);
   };
 
   return (

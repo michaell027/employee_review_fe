@@ -9,6 +9,9 @@ import Error from "@/components/error";
 import QuestionsForm from "@/components/questions-form";
 import ReviewHandler from "@/components/review-handler";
 import State from "@/libs/enums/state";
+import { Evaluation } from "@/libs/interfaces/evaluation";
+import { getReviewBasedOnEvaluation } from "@/libs/api/review-service";
+import { Review } from "@/libs/types/review";
 
 export default function Generate() {
   const [state, setState] = useState<State>(State.LoadingQuestions);
@@ -40,14 +43,23 @@ export default function Generate() {
     fetchQuestions().then(() => {});
   }, [employeeId]);
 
-  const handleGenerateReview = () => {
+  const handleGenerateReview = async (evaluation: Evaluation) => {
+    if (evaluation.evaluation.length !== generatedQuestions.length) {
+      console.error("Invalid evaluation data.");
+      return;
+    }
     setState(State.GeneratingReview);
-    setTimeout(() => {
-      setGeneratedReview(
-        "This is a sample generated review for the employee. It highlights their performance, strengths, and areas for improvement based on the provided information.",
-      );
+
+    getReviewBasedOnEvaluation(evaluation).then((data: Review | null) => {
+      if (data === null) {
+        setError("Failed to generate review.");
+        setState(State.GeneratingReviewError);
+        return;
+      }
+
+      setGeneratedReview(data);
       setState(State.ReviewGenerated);
-    }, 2000);
+    });
   };
 
   const handleRequestChanges = () => {
