@@ -1,17 +1,20 @@
 import LineDivider from "@/components/line-divider";
 import Chat from "@/components/chat";
 import State from "@/libs/enums/state";
+import Error from "@/components/error";
 
 interface ReviewHandlerProps {
   state: State;
   generatedReview: string;
   handleRequestChanges: () => void;
+  error: string;
 }
 
 export default function ReviewHandler({
   state,
   generatedReview,
   handleRequestChanges,
+  error,
 }: ReviewHandlerProps) {
   return (
     <>
@@ -24,8 +27,11 @@ export default function ReviewHandler({
         start a chat with the AI model.
       </p>
       <LineDivider />
-      {state === State.Chatting ? (
-        <Chat review={generatedReview} />
+      {state === State.Chatting && <Chat review={generatedReview} />}
+      {state === State.GeneratingReviewError ? (
+        <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
+          <Error message={error} />
+        </div>
       ) : (
         <>
           <div className="min-h-40 text-black mt-10 rounded-md bg-white relative">

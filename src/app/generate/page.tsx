@@ -45,6 +45,7 @@ export default function Generate() {
 
   const handleGenerateReview = async (evaluation: Evaluation) => {
     if (evaluation.evaluation.length !== generatedQuestions.length) {
+      //TODO: Add some error handling here
       console.error("Invalid evaluation data.");
       return;
     }
@@ -108,11 +109,14 @@ export default function Generate() {
               )}
             </>
           )}
-          {(state === State.ReviewGenerated || state === State.Chatting) && (
+          {(state === State.ReviewGenerated ||
+            state === State.Chatting ||
+            state === State.GeneratingReviewError) && (
             <ReviewHandler
               state={state}
               generatedReview={generatedReview}
               handleRequestChanges={handleRequestChanges}
+              error={error}
             />
           )}
           <LineDivider />
