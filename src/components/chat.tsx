@@ -72,7 +72,7 @@ export default function Chat({ review }: ChatProps) {
         });
       }
     }
-  }, [messages]);
+  }, []);
 
   return (
     <div className="flex flex-col mt-6 pb-10">
@@ -92,6 +92,27 @@ export default function Chat({ review }: ChatProps) {
               </div>
             </div>
           ))}
+          {state === State.GeneratingNewReview && (
+            <div className="flex">
+              <div className="text-white text-lg shadow-2xl bg-[#121828] px-4 py-3 rounded-md max-w-2xl">
+                <div className="flex items-center">
+                  <span className="bounce-dot">.</span>
+                  <span
+                    className="bounce-dot"
+                    style={{ animationDelay: "0.2s" }}
+                  >
+                    .
+                  </span>
+                  <span
+                    className="bounce-dot"
+                    style={{ animationDelay: "0.4s" }}
+                  >
+                    .
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
