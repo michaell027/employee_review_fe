@@ -1,4 +1,4 @@
 export interface Message {
-  text: string;
-  sender: "user" | "llama";
+  content: string;
+  role: "user" | "assistant" | "system";
 }

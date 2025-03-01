@@ -24,4 +24,17 @@ const getReviewBasedOnEvaluation = async (
   }
 };
 
-export { getReviewBasedOnEvaluation };
+const changeReview = async (messages: any): Promise<Review | null> => {
+  try {
+    const response = await api.post<Review>("/review/change", messages, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch {
+    return null;
+  }
+};
+export { getReviewBasedOnEvaluation, changeReview };

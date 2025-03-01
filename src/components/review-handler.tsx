@@ -28,11 +28,12 @@ export default function ReviewHandler({
       </p>
       <LineDivider />
       {state === State.Chatting && <Chat review={generatedReview} />}
-      {state === State.GeneratingReviewError ? (
+      {state === State.GeneratingReviewError && (
         <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
           <Error message={error} />
         </div>
-      ) : (
+      )}
+      {state === State.ReviewGenerated && (
         <>
           <div className="min-h-40 text-black mt-10 rounded-md bg-white relative">
             <div className="p-4">

@@ -15,33 +15,35 @@ import { Review } from "@/libs/types/review";
 import ErrorDemo from "@/components/test-error";
 
 export default function Generate() {
-  const [state, setState] = useState<State>(State.LoadingQuestions);
-  const [generatedReview, setGeneratedReview] = useState<string>("");
+  const [state, setState] = useState<State>(State.ReviewGenerated);
+  const [generatedReview, setGeneratedReview] = useState<string>(
+    "You have demonstrated expertise in software engineering, which is a significant strength in your role as a Software Engineer. Your effective problem-solving skills have been invaluable to the team, and you have made significant contributions to our projects. However, there are areas where you can improve, such as developing your communication skills. You have faced challenges while learning new technologies, but adapting quickly has shown your resilience and ability to grow professionally. To further enhance your performance, consider focusing on improving your communication skills to ensure seamless collaboration with the team. Overall, you have a strong foundation in software engineering and problem-solving, and with continued effort, you can excel in this role.",
+  );
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string>("");
 
   const employeeId = 1;
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      if (!employeeId) {
-        setError("Employee ID not found.");
-        setState(State.GeneratingQuestionsError);
-        return;
-      }
-      const data: Question[] | null =
-        await getQuestionsByEmployeeId(employeeId);
-
-      if (data === null) {
-        setError("Failed to generate questions.");
-        setState(State.GeneratingQuestionsError);
-        return;
-      }
-      setGeneratedQuestions(data);
-      setState(State.QuestionsLoaded);
-    };
-
-    fetchQuestions().then(() => {});
+    // const fetchQuestions = async () => {
+    //   if (!employeeId) {
+    //     setError("Employee ID not found.");
+    //     setState(State.GeneratingQuestionsError);
+    //     return;
+    //   }
+    //   const data: Question[] | null =
+    //     await getQuestionsByEmployeeId(employeeId);
+    //
+    //   if (data === null) {
+    //     setError("Failed to generate questions.");
+    //     setState(State.GeneratingQuestionsError);
+    //     return;
+    //   }
+    //   setGeneratedQuestions(data);
+    //   setState(State.QuestionsLoaded);
+    // };
+    //
+    // fetchQuestions().then(() => {});
   }, [employeeId]);
 
   const handleGenerateReview = async (evaluation: Evaluation) => {
