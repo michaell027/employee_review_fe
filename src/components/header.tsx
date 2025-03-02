@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogPanel,
   Disclosure,
   DisclosureButton,
+  DisclosurePanel,
   Popover,
   PopoverButton,
   PopoverGroup,
@@ -22,6 +23,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import Image from "next/image";
+import { getAllManagers } from "@/libs/api/manager-service";
+import { Manager } from "@/libs/interfaces/manager";
+
+//TODO: In other components use @headlessui/react and @heroicons/react as well
 
 const products = [
   {
@@ -38,7 +43,7 @@ const products = [
   },
   {
     name: "Security",
-    description: "Your customers’ data will be safe and secure",
+    description: "Your customers' data will be safe and secure",
     href: "#",
     icon: FingerPrintIcon,
   },
@@ -58,6 +63,37 @@ const products = [
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedManager, setSelectedManager] = useState<Manager | null>(null);
+  const [testManagers, setTestManagers] = useState<Manager[]>([]);
+
+  useEffect(() => {
+    const fetchManagers = async () => {
+      const data = await getAllManagers();
+      if (data === null || data.length === 0) {
+        //TODO: Add error page here
+        throw new Error("Failed to fetch managers.");
+      }
+      setTestManagers(data);
+    };
+
+    fetchManagers().then(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedUser = localStorage.getItem("selectedTestUser");
+      if (savedUser) {
+        setSelectedManager(JSON.parse(savedUser));
+      }
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleUserSelect = (manager: Manager) => {
+    setSelectedManager(manager);
+    localStorage.setItem("selectedTestUser", JSON.stringify(manager));
+  };
 
   return (
     <header className="bg-white shadow-sm">
@@ -139,9 +175,57 @@ export default function Header() {
           </a>
         </PopoverGroup>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="text-sm/6 font-semibold text-gray-900">
-            Log in <span aria-hidden="true">&rarr;</span>
-          </a>
+          <Popover className="relative">
+            <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
+              {isLoading ? (
+                <span className="inline-block w-20 h-5 bg-gray-200 rounded animate-pulse"></span>
+              ) : selectedManager ? (
+                selectedManager.name
+              ) : (
+                "Select Test User"
+              )}
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-5 flex-none text-gray-400"
+              />
+            </PopoverButton>
+
+            <PopoverPanel
+              transition
+              className="absolute right-0 top-full z-10 mt-3 w-56 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-gray-900/5 transition data-[closed]:translate-y-1 data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-150 data-[enter]:ease-out data-[leave]:ease-in"
+            >
+              <div className="p-2">
+                {testManagers.map((user) => (
+                  <div
+                    key={user.name}
+                    className="group relative flex items-center gap-x-4 rounded-md p-2 text-sm/6 hover:bg-gray-50"
+                  >
+                    <div className="flex size-8 flex-none items-center justify-center rounded-full bg-gray-50 group-hover:bg-white">
+                      <span className="text-sm font-medium text-gray-600 group-hover:text-indigo-600">
+                        {user.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div className="flex-auto">
+                      <a
+                        href="#"
+                        className="block font-semibold text-gray-900"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleUserSelect(user);
+                        }}
+                      >
+                        {user.name}
+                        <span className="absolute inset-0" />
+                      </a>
+                      <p className="mt-1 text-xs text-gray-600">
+                        {user.position}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PopoverPanel>
+          </Popover>
         </div>
       </nav>
       <Dialog
@@ -202,12 +286,37 @@ export default function Header() {
                 </a>
               </div>
               <div className="py-6">
-                <a
-                  href="#"
-                  className="-mx-3 block rounded-md px-3 py-2.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50"
-                >
-                  Log in
-                </a>
+                <Disclosure as="div" className="-mx-3">
+                  <DisclosureButton className="group flex w-full items-center justify-between rounded-md py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
+                    {isLoading ? (
+                      <span className="inline-block w-20 h-5 bg-gray-200 rounded animate-pulse"></span>
+                    ) : selectedManager ? (
+                      selectedManager.name
+                    ) : (
+                      "Select Test User"
+                    )}
+                    <ChevronDownIcon
+                      aria-hidden="true"
+                      className="size-5 flex-none group-data-[open]:rotate-180"
+                    />
+                  </DisclosureButton>
+                  <DisclosurePanel className="mt-2 space-y-2">
+                    {testManagers.map((user) => (
+                      <a
+                        key={user.name}
+                        href="#"
+                        className="block rounded-md py-2 pl-6 pr-3 text-sm font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleUserSelect(user);
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        {user.name}
+                      </a>
+                    ))}
+                  </DisclosurePanel>
+                </Disclosure>
               </div>
             </div>
           </div>

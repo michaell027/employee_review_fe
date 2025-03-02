@@ -35,7 +35,7 @@ export default function ReviewHandler({
       )}
       {state === State.ReviewGenerated && (
         <>
-          <div className="min-h-40 text-black mt-10 rounded-md bg-white relative">
+          <div className="min-h-40 mt-10 rounded-md bg-[#121828] relative">
             <div className="p-4">
               <p>{generatedReview}</p>
             </div>
