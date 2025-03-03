@@ -24,7 +24,8 @@ import {
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import Image from "next/image";
 import { getAllManagers } from "@/libs/api/manager-service";
-import { Manager } from "@/libs/interfaces/manager";
+import type { Manager } from "@/libs/interfaces/manager";
+import { useManager } from "@/libs/context/manager-context";
 
 //TODO: In other components use @headlessui/react and @heroicons/react as well
 
@@ -64,7 +65,7 @@ const products = [
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedManager, setSelectedManager] = useState<Manager | null>(null);
+  const { selectedManager, setSelectedManager } = useManager();
   const [testManagers, setTestManagers] = useState<Manager[]>([]);
 
   useEffect(() => {
@@ -75,24 +76,14 @@ export default function Header() {
         throw new Error("Failed to fetch managers.");
       }
       setTestManagers(data);
+      setIsLoading(false);
     };
 
-    fetchManagers().then(() => {});
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem("selectedTestUser");
-      if (savedUser) {
-        setSelectedManager(JSON.parse(savedUser));
-      }
-      setIsLoading(false);
-    }
+    fetchManagers();
   }, []);
 
   const handleUserSelect = (manager: Manager) => {
     setSelectedManager(manager);
-    localStorage.setItem("selectedTestUser", JSON.stringify(manager));
   };
 
   return (

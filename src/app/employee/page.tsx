@@ -1,20 +1,24 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getAllEmployees } from "@/libs/api/employee-service";
+import { getManagerEmployees } from "@/libs/api/employee-service";
+import Image from "next/image";
 import Loading from "@/components/loading";
 import Error from "@/components/error";
 import { Employee } from "@/libs/interfaces/employee";
+import { useManager } from "@/libs/context/manager-context";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const { selectedManager } = useManager();
 
   useEffect(() => {
+    if (!selectedManager) return;
+
     setLoading(true);
-    getAllEmployees().then((data) => {
+    getManagerEmployees(selectedManager.id).then((data) => {
       if (data === null) {
         setError("Failed to fetch employees.");
         setLoading(false);
@@ -31,7 +35,7 @@ export default function EmployeesPage() {
     return () => {
       setEmployees([]);
     };
-  }, []);
+  }, [selectedManager]);
 
   return (
     <section className="min-h-fit flex flex-col items-stretch text-white bg-white">
@@ -48,7 +52,15 @@ export default function EmployeesPage() {
               <h3 className="text-2xl font-bold text-white">Team Members</h3>
             </div>
             <div className="flow-root">
-              {loading ? (
+              {!selectedManager ? (
+                <div className="flex w-full flex-col space-y-4 items-center justify-center p-8 text-center">
+                  <Error
+                    message={
+                      "No manager selected, please select your test manager in the top right corner"
+                    }
+                  />
+                </div>
+              ) : loading ? (
                 <Loading />
               ) : employees.length === 0 ? (
                 <div className="flex w-full flex-col my-5 space-y-4 items-center justify-center">
