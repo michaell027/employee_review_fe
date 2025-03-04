@@ -29,4 +29,15 @@ const getManagerEmployees = async (
   }
 };
 
-export { getAllEmployees, getManagerEmployees };
+const getEmployeeById = async (
+  employeeId: number,
+): Promise<Employee | null> => {
+  try {
+    const response = await api.get<Employee>(`/employees/${employeeId}`);
+    return response.data;
+  } catch {
+    return null;
+  }
+};
+
+export { getAllEmployees, getManagerEmployees, getEmployeeById };

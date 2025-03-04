@@ -1,29 +1,13 @@
 "use client";
 import type { Goal } from "@/libs/interfaces/goal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Employee } from "@/libs/interfaces/employee";
+import { useParams } from "next/navigation";
+import { getEmployeeById } from "@/libs/api/employee-service";
+import Loading from "@/components/loading";
 
 export default function EmployeePage() {
-  const user: Employee = {
-    id: "EMP-2023-0042",
-    name: "Jana Nováková",
-    position: "Senior Software Developer",
-    department: "Engineering",
-    manager: "Martin Kováč",
-    joinDate: "March 15, 2020",
-    birthday: "January 10, 1985",
-    email: "jana@novak.com",
-  };
-
   const initialReview = "";
-
-  //   const review = `Jana has consistently demonstrated exceptional technical skills and problem-solving abilities throughout this review period. Her contributions to the backend infrastructure project were instrumental in its successful delivery ahead of schedule.
-  //
-  // She shows great initiative in mentoring junior team members and has received positive feedback from her peers. Jana's communication skills have improved significantly, allowing her to effectively collaborate with cross-functional teams.
-  //
-  // Areas for improvement include delegation of tasks and work-life balance. Jana tends to take on too much responsibility rather than distributing work among team members. We've discussed strategies to address this in the coming months.
-  //
-  // Overall, Jana's performance exceeds expectations, and she continues to be a valuable asset to the engineering department.`;
 
   const goals: Goal[] = [
     {
@@ -56,24 +40,24 @@ export default function EmployeePage() {
     },
   ];
 
+  const [user, setUser] = useState<Employee | null>(null);
   const [review, setReview] = useState<string | null>(initialReview || null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const params = useParams();
+  const employeeId = Number(params.id);
 
-  const handleGenerateReview = async () => {
-    setIsGenerating(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setReview(
-        "This is a generated review for " +
-          user.name +
-          ". The actual content would be fetched from your backend or AI service.",
-      );
-    } catch (error) {
-      console.error("Failed to generate review:", error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  useEffect(() => {
+    setIsLoading(true);
+    getEmployeeById(employeeId).then((data: Employee | null) => {
+      if (data === null) {
+        // TODO: Add error handling
+        console.error("Failed to fetch employee data.");
+        return;
+      }
+      setUser(data);
+      setIsLoading(false);
+    });
+  }, [employeeId]);
 
   return (
     <section className="min-h-fit flex flex-col items-stretch text-white bg-white">
@@ -84,85 +68,100 @@ export default function EmployeePage() {
         <div aria-hidden="true" className="clip-background-color-second-holder">
           <div className="clip-background-color-second" />
         </div>
-        <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="w-24 h-24 rounded-full bg-[#776fff] flex items-center justify-center text-2xl font-bold">
-              {user.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold">{user.name}</h2>
-              <p className="text-gray-400">{user.position}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <p className="text-gray-400">Department</p>
-                  <p>{user.department}</p>
+        {isLoading ? (
+          <Loading />
+        ) : user ? (
+          <>
+            <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                <div className="w-24 h-24 rounded-full bg-[#776fff] flex items-center justify-center text-2xl font-bold">
+                  {user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </div>
-                <div>
-                  <p className="text-gray-400">Manager</p>
-                  <p>{user.manager}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Joined</p>
-                  <p>{user.joinDate}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Employee ID</p>
-                  <p>{user.id}</p>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold">{user.name}</h2>
+                  <p className="text-gray-400">{user.position}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <p className="text-gray-400">Department</p>
+                      <p>{user.department}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Manager</p>
+                      <p>{user.manager}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Joined</p>
+                      <p>{user.join_date}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400">Employee ID</p>
+                      <p>{user.id}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8">
-          <h3 className="text-xl font-semibold mb-4">Performance Review</h3>
-          {review ? (
-            <div className="bg-[#121828] p-4 rounded-md">
-              <p className="whitespace-pre-line">{review}</p>
+            <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8">
+              <div>
+                <h3 className="text-xl font-bold mb-4">Performance Review</h3>
+                {review ? (
+                  <p className="mb-4">{review}</p>
+                ) : (
+                  <p className="text-gray-400 mb-4">No review generated yet.</p>
+                )}
+                <button
+                  onClick={() =>
+                    (window.location.href = `/generate?employeeId=${user.id}`)
+                  }
+                  className="bg-[#776fff] hover:bg-[#6258d3] px-6 py-2 rounded-md transition-colors"
+                >
+                  Generate Review
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center bg-[#121828] p-8 rounded-md">
-              <p className="mb-4 text-center">No review available yet.</p>
-              <button
-                onClick={handleGenerateReview}
-                disabled={isGenerating}
-                className={`bg-[#776fff] hover:bg-[#5a54cc] px-6 py-2 rounded-md transition-colors ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {isGenerating ? "Generating..." : "Generate Review"}
+
+            <div className="bg-[#1a2035] rounded-lg shadow-xl p-6">
+              <div>
+                <h3 className="text-xl font-bold mb-4">Performance Goals</h3>
+                <ul>
+                  {goals.map((goal, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between mb-2">
+                        <h4 className="font-medium">{goal.title}</h4>
+                        <span className="text-sm font-bold">
+                          {goal.percentage}%
+                        </span>
+                      </div>
+                      <div className="h-3 w-full bg-[#121828] rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${getProgressColor(goal.percentage)}`}
+                          style={{ width: `${goal.percentage}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2">
+                        {goal.description}
+                      </p>
+                    </div>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-8 gap-4">
+              <button className="bg-[#312343] hover:bg-[#3e2c56] px-6 py-2 rounded-md transition-colors">
+                Manage goals
               </button>
             </div>
-          )}
-        </div>
-
-        <div className="bg-[#1a2035] rounded-lg shadow-xl p-6">
-          <h3 className="text-xl font-semibold mb-4">Performance Goals</h3>
-          <div className="space-y-6">
-            {goals.map((goal, index) => (
-              <div key={index}>
-                <div className="flex justify-between mb-2">
-                  <h4 className="font-medium">{goal.title}</h4>
-                  <span className="text-sm font-bold">{goal.percentage}%</span>
-                </div>
-                <div className="h-3 w-full bg-[#121828] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${getProgressColor(goal.percentage)}`}
-                    style={{ width: `${goal.percentage}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-400 mt-2">{goal.description}</p>
-              </div>
-            ))}
+          </>
+        ) : (
+          <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8 text-center">
+            <p>No user data available.</p>
           </div>
-        </div>
-
-        <div className="flex justify-end mt-8 gap-4">
-          <button className="bg-[#312343] hover:bg-[#3e2c56] px-6 py-2 rounded-md transition-colors">
-            Manage goals
-          </button>
-        </div>
+        )}
       </div>
     </section>
   );

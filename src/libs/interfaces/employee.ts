@@ -6,5 +6,7 @@ export interface Employee {
   department: string;
   manager: string;
   birthday: string;
-  joinDate: string;
+  join_date: string;
+  is_manager: boolean;
+  is_review_generated: boolean;
 }

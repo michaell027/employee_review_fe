@@ -79,7 +79,7 @@ export default function Header() {
       setIsLoading(false);
     };
 
-    fetchManagers();
+    fetchManagers().then();
   }, []);
 
   const handleUserSelect = (manager: Manager) => {

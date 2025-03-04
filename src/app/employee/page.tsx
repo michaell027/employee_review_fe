@@ -5,20 +5,25 @@ import { getManagerEmployees } from "@/libs/api/employee-service";
 import Image from "next/image";
 import Loading from "@/components/loading";
 import Error from "@/components/error";
-import { Employee } from "@/libs/interfaces/employee";
+import type { Employee } from "@/libs/interfaces/employee";
 import { useManager } from "@/libs/context/manager-context";
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const { selectedManager } = useManager();
+  const { selectedManager, isLoadingManager } = useManager();
 
   useEffect(() => {
-    if (!selectedManager) return;
+    if (isLoadingManager) return;
+
+    if (!selectedManager) {
+      setError("No manager selected");
+      return;
+    }
 
     setLoading(true);
-    getManagerEmployees(selectedManager.id).then((data) => {
+    getManagerEmployees(selectedManager.id).then((data: Employee[] | null) => {
       if (data === null) {
         setError("Failed to fetch employees.");
         setLoading(false);
@@ -28,6 +33,8 @@ export default function EmployeesPage() {
         setLoading(false);
         return;
       }
+      console.log(data[0]);
+      console.log(data[0].is_manager);
       setLoading(false);
       setEmployees(data);
     });
@@ -35,7 +42,38 @@ export default function EmployeesPage() {
     return () => {
       setEmployees([]);
     };
-  }, [selectedManager]);
+  }, [selectedManager, isLoadingManager]);
+
+  if (isLoadingManager) {
+    return (
+      <section className="min-h-fit flex flex-col items-stretch text-white bg-white">
+        <div className="lg:flex w-full lg:px-64 clip-background items-center">
+          <div
+            aria-hidden="true"
+            className="clip-background-color-first-holder"
+          >
+            <div className="clip-background-color-first" />
+          </div>
+          <div
+            aria-hidden="true"
+            className="clip-background-color-second-holder"
+          >
+            <div className="clip-background-color-second" />
+          </div>
+          <div className="w-full flex flex-col items-center justify-center z-10">
+            <div className="px-4 py-8 w-full bg-[#121828] rounded-md shadow-2xl">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-2xl font-bold text-white">Team Members</h3>
+              </div>
+              <div className="flow-root">
+                <Loading />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-fit flex flex-col items-stretch text-white bg-white">
@@ -87,23 +125,26 @@ export default function EmployeesPage() {
                           </p>
                         </div>
                         <div className="inline-flex gap-3 items-center text-base font-semibold text-white">
-                          <button
-                            disabled
-                            className="flex border-2 bg-[#312343] border-[#312343] px-2 py-1 rounded-md text-sm"
-                          >
-                            Review sent
-                          </button>
+                          {employee.is_review_generated ? (
+                            <button
+                              disabled
+                              className="flex border-2 bg-[#312343] border-[#312343] px-2 py-1 rounded-md text-sm"
+                            >
+                              Review sent
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                (window.location.href = `/generate?employeeId=${employee.id}`)
+                              }
+                              className="flex border-2 border-green-800 bg-green-800 px-2 py-1 rounded-md text-sm"
+                            >
+                              Send review
+                            </button>
+                          )}
                           <button
                             onClick={() =>
-                              (window.location.href = `/generate?employeeId=${employee.id}`)
-                            }
-                            className="flex border-2 border-green-800 bg-green-800 px-2 py-1 rounded-md text-sm"
-                          >
-                            Send review
-                          </button>
-                          <button
-                            onClick={() =>
-                              (window.location.href = `/profile/${employee.id}`)
+                              (window.location.href = `/employee/${employee.id}`)
                             }
                             className="flex border-2 border-[#776fff] bg-[#776fff] px-2 py-1 rounded-md text-sm hover:bg-purple-700 hover:border-purple-700 transition-colors"
                           >

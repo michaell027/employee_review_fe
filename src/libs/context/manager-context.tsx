@@ -12,6 +12,7 @@ import type { Manager } from "@/libs/interfaces/manager";
 interface ManagerContextType {
   selectedManager: Manager | null;
   setSelectedManager: (manager: Manager) => void;
+  isLoadingManager: boolean; // Add loading state for manager
 }
 
 const ManagerContext = createContext<ManagerContextType | undefined>(undefined);
@@ -20,14 +21,24 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
   const [selectedManager, setSelectedManagerState] = useState<Manager | null>(
     null,
   );
+  const [isLoadingManager, setIsLoadingManager] = useState(true); // Initialize as loading
 
   useEffect(() => {
     // Initialize from localStorage on mount
     if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem("selectedTestUser");
-      if (savedUser) {
-        setSelectedManagerState(JSON.parse(savedUser));
+      try {
+        const savedUser = localStorage.getItem("selectedTestUser");
+        if (savedUser) {
+          setSelectedManagerState(JSON.parse(savedUser));
+        }
+      } catch (error) {
+        console.error("Error loading manager from localStorage:", error);
+      } finally {
+        // Mark loading as complete regardless of outcome
+        setIsLoadingManager(false);
       }
+    } else {
+      setIsLoadingManager(false);
     }
   }, []);
 
@@ -37,7 +48,9 @@ export function ManagerProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ManagerContext.Provider value={{ selectedManager, setSelectedManager }}>
+    <ManagerContext.Provider
+      value={{ selectedManager, setSelectedManager, isLoadingManager }}
+    >
       {children}
     </ManagerContext.Provider>
   );
