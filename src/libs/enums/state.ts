@@ -6,6 +6,8 @@ enum State {
   GeneratingReview = 2,
   ReviewGenerated = 3,
   Chatting = 4,
+  ReviewSent = 5,
+  SavingReviewError = 6,
 }
 
 export default State;

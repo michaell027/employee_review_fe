@@ -1,14 +1,13 @@
 "use client";
 import type { Goal } from "@/libs/interfaces/goal";
 import { useEffect, useState } from "react";
-import { Employee } from "@/libs/interfaces/employee";
 import { useParams } from "next/navigation";
 import { getEmployeeById } from "@/libs/api/employee-service";
 import Loading from "@/components/loading";
+import type { EmployeeProfile } from "@/libs/interfaces/employee-profile";
+import Link from "next/link";
 
 export default function EmployeePage() {
-  const initialReview = "";
-
   const goals: Goal[] = [
     {
       title: "Technical Leadership",
@@ -40,19 +39,16 @@ export default function EmployeePage() {
     },
   ];
 
-  const [user, setUser] = useState<Employee | null>(null);
-  const [review, setReview] = useState<string | null>(initialReview || null);
+  const [user, setUser] = useState<EmployeeProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const params = useParams();
   const employeeId = Number(params.id);
 
   useEffect(() => {
     setIsLoading(true);
-    getEmployeeById(employeeId).then((data: Employee | null) => {
+    getEmployeeById(employeeId).then((data: EmployeeProfile | null) => {
       if (data === null) {
-        // TODO: Add error handling
-        console.error("Failed to fetch employee data.");
-        return;
+        setIsLoading(false);
       }
       setUser(data);
       setIsLoading(false);
@@ -108,19 +104,21 @@ export default function EmployeePage() {
             <div className="bg-[#1a2035] rounded-lg shadow-xl p-6 mb-8">
               <div>
                 <h3 className="text-xl font-bold mb-4">Performance Review</h3>
-                {review ? (
-                  <p className="mb-4">{review}</p>
+                {user.review && user.review.content ? (
+                  <p className="mb-4">{user.review.content}</p>
                 ) : (
-                  <p className="text-gray-400 mb-4">No review generated yet.</p>
+                  <>
+                    <p className="text-gray-400 mb-4">
+                      No review generated yet.
+                    </p>
+                    <Link
+                      href={`/employee/${employeeId}/review`}
+                      className="bg-[#776fff] hover:bg-[#6258d3] px-6 py-3 rounded-md transition-colors"
+                    >
+                      Generate Review
+                    </Link>
+                  </>
                 )}
-                <button
-                  onClick={() =>
-                    (window.location.href = `/generate?employeeId=${user.id}`)
-                  }
-                  className="bg-[#776fff] hover:bg-[#6258d3] px-6 py-2 rounded-md transition-colors"
-                >
-                  Generate Review
-                </button>
               </div>
             </div>
 

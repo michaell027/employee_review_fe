@@ -1,13 +1,16 @@
-import LineDivider from "@/components/line-divider";
-import Chat from "@/components/chat";
+"use client";
+
 import State from "@/libs/enums/state";
-import Error from "@/components/error";
+import ErrorComponent from "@/components/error";
+import Chat from "@/components/chat";
+import LineDivider from "@/components/line-divider";
 
 interface ReviewHandlerProps {
   state: State;
   generatedReview: string;
   handleRequestChanges: () => void;
   error: string;
+  handleSaveReview: (updatedReview?: string) => void; // Update the type to accept an optional parameter
 }
 
 export default function ReviewHandler({
@@ -15,30 +18,35 @@ export default function ReviewHandler({
   generatedReview,
   handleRequestChanges,
   error,
+  handleSaveReview,
 }: ReviewHandlerProps) {
+  const onSaveReview = (updatedReview: string) => {
+    handleSaveReview(updatedReview);
+  };
+
   return (
-    <>
-      <h1 className="text-2xl font-bold text-left tracking-wide">
-        Generated review:
+    <div className="flex flex-col">
+      <h1 className="text-4xl font-bold text-left tracking-wide">
+        Review Generated
       </h1>
-      <p className="text-lg my-8">
-        Here&#39;s the generated review for your employee. If you want to make
-        changes, use the &#39;Request Changes&#39; button below the review and
-        start a chat with the AI model.
+      <p className="text-xl my-6">
+        Here is the generated review. You can send it as is or request changes.
       </p>
       <LineDivider />
-      {state === State.Chatting && <Chat review={generatedReview} />}
+      {state === State.SavingReviewError && (
+        <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
+          <ErrorComponent message={error} />
+        </div>
+      )}
       {state === State.GeneratingReviewError && (
         <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
-          <Error message={error} />
+          <ErrorComponent message={error} />
         </div>
       )}
       {state === State.ReviewGenerated && (
-        <>
-          <div className="min-h-40 mt-10 rounded-md bg-[#121828] relative">
-            <div className="p-4">
-              <p>{generatedReview}</p>
-            </div>
+        <div className="flex flex-col mt-6 w-full">
+          <div className="bg-[#121828] text-white text-lg shadow-2xl px-4 py-3 rounded-md">
+            {generatedReview}
           </div>
           <div className="mt-4 gap-3 flex justify-end">
             <button
@@ -48,14 +56,17 @@ export default function ReviewHandler({
               Request Changes
             </button>
             <button
-              onClick={handleRequestChanges}
+              onClick={() => handleSaveReview()}
               className="bg-[#776fff] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#5a54cc] transition-colors"
             >
-              Accept & Send
+              Send Review
             </button>
           </div>
-        </>
+        </div>
       )}
-    </>
+      {state === State.Chatting && (
+        <Chat review={generatedReview} onSaveReview={onSaveReview} />
+      )}
+    </div>
   );
 }

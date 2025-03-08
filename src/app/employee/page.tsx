@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getManagerEmployees } from "@/libs/api/employee-service";
 import Image from "next/image";
 import Loading from "@/components/loading";
-import Error from "@/components/error";
+import ErrorComponent from "@/components/error";
 import type { Employee } from "@/libs/interfaces/employee";
 import { useManager } from "@/libs/context/manager-context";
 
@@ -33,8 +33,6 @@ export default function EmployeesPage() {
         setLoading(false);
         return;
       }
-      console.log(data[0]);
-      console.log(data[0].is_manager);
       setLoading(false);
       setEmployees(data);
     });
@@ -92,7 +90,7 @@ export default function EmployeesPage() {
             <div className="flow-root">
               {!selectedManager ? (
                 <div className="flex w-full flex-col space-y-4 items-center justify-center p-8 text-center">
-                  <Error
+                  <ErrorComponent
                     message={
                       "No manager selected, please select your test manager in the top right corner"
                     }
@@ -102,7 +100,7 @@ export default function EmployeesPage() {
                 <Loading />
               ) : employees.length === 0 ? (
                 <div className="flex w-full flex-col my-5 space-y-4 items-center justify-center">
-                  <Error message={error} />
+                  <ErrorComponent message={error} />
                 </div>
               ) : (
                 <ul role="list" className="divide-y divide-gray-700">

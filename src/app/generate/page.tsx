@@ -3,52 +3,57 @@ import { useEffect, useState } from "react";
 import OllamaFooter from "@/components/ollama-footer";
 import Loading from "@/components/loading";
 import LineDivider from "@/components/line-divider";
-import { Question } from "@/libs/types/question";
+import type { Question } from "@/libs/types/question";
 import { getQuestionsByEmployeeId } from "@/libs/api/questions-service";
-import Error from "@/components/error";
+import ErrorComponent from "@/components/error";
 import QuestionsForm from "@/components/questions-form";
 import ReviewHandler from "@/components/review-handler";
 import State from "@/libs/enums/state";
-import { Evaluation } from "@/libs/interfaces/evaluation";
-import { getReviewBasedOnEvaluation } from "@/libs/api/review-service";
-import { Review } from "@/libs/types/review";
+import type { Evaluation } from "@/libs/interfaces/evaluation";
+import {
+  getReviewBasedOnEvaluation,
+  saveReview,
+} from "@/libs/api/review-service";
+import type { Review } from "@/libs/types/review";
+import { useSearchParams } from "next/navigation";
+import { useManager } from "@/libs/context/manager-context";
+import ReviewSuccess from "@/components/review-success";
 
 export default function Generate() {
-  const [state, setState] = useState<State>(State.ReviewGenerated);
-  const [generatedReview, setGeneratedReview] = useState<string>(
-    "You have demonstrated expertise in software engineering, which is a significant strength in your role as a Software Engineer. Your effective problem-solving skills have been invaluable to the team, and you have made significant contributions to our projects. However, there are areas where you can improve, such as developing your communication skills. You have faced challenges while learning new technologies, but adapting quickly has shown your resilience and ability to grow professionally. To further enhance your performance, consider focusing on improving your communication skills to ensure seamless collaboration with the team. Overall, you have a strong foundation in software engineering and problem-solving, and with continued effort, you can excel in this role.",
-  );
+  const searchParams = useSearchParams();
+  const [state, setState] = useState<State>(State.LoadingQuestions);
+  const [generatedReview, setGeneratedReview] = useState<string>("");
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string>("");
-
-  const employeeId = 1;
+  const employeeId = Number(searchParams.get("employeeId"));
+  const { selectedManager } = useManager();
 
   useEffect(() => {
-    // const fetchQuestions = async () => {
-    //   if (!employeeId) {
-    //     setError("Employee ID not found.");
-    //     setState(State.GeneratingQuestionsError);
-    //     return;
-    //   }
-    //   const data: Question[] | null =
-    //     await getQuestionsByEmployeeId(employeeId);
-    //
-    //   if (data === null) {
-    //     setError("Failed to generate questions.");
-    //     setState(State.GeneratingQuestionsError);
-    //     return;
-    //   }
-    //   setGeneratedQuestions(data);
-    //   setState(State.QuestionsLoaded);
-    // };
-    //
-    // fetchQuestions().then(() => {});
+    const fetchQuestions = async () => {
+      if (!employeeId) {
+        setError("Employee ID not found.");
+        setState(State.GeneratingQuestionsError);
+        return;
+      }
+      const data: Question[] | null =
+        await getQuestionsByEmployeeId(employeeId);
+
+      if (data === null) {
+        setError("Failed to generate questions.");
+        setState(State.GeneratingQuestionsError);
+        return;
+      }
+      setGeneratedQuestions(data);
+      setState(State.QuestionsLoaded);
+    };
+
+    fetchQuestions().then(() => {});
   }, [employeeId]);
 
   const handleGenerateReview = async (evaluation: Evaluation) => {
     if (evaluation.evaluation.length !== generatedQuestions.length) {
-      //TODO: Add some error handling here
-      console.error("Invalid evaluation data.");
+      setError("You must answer all questions.");
+      setState(State.GeneratingReviewError);
       return;
     }
     setState(State.GeneratingReview);
@@ -63,6 +68,31 @@ export default function Generate() {
       setGeneratedReview(data);
       setState(State.ReviewGenerated);
     });
+  };
+
+  const handleSaveReview = async (updatedReview?: string) => {
+    const managerId = selectedManager?.id;
+    if (!managerId) {
+      setError("Manager ID not found.");
+      setState(State.SavingReviewError);
+      return;
+    }
+
+    const reviewToSave = updatedReview || generatedReview;
+
+    saveReview(reviewToSave, employeeId, managerId).then(
+      (data: Review | null) => {
+        if (data === null) {
+          setError("Failed to save review.");
+          setState(State.SavingReviewError);
+          return;
+        }
+        if (updatedReview) {
+          setGeneratedReview(updatedReview);
+        }
+        setState(State.ReviewSent);
+      },
+    );
   };
 
   const handleRequestChanges = () => {
@@ -82,6 +112,12 @@ export default function Generate() {
           <div className="clip-background-color-second" />
         </div>
         <div className="w-full px-24 z-10">
+          {state === State.ReviewSent && (
+            <ReviewSuccess
+              employeeId={employeeId}
+              generatedReview={generatedReview}
+            />
+          )}
           {(state === State.LoadingQuestions ||
             state === State.QuestionsLoaded ||
             state === State.GeneratingReview ||
@@ -97,7 +133,7 @@ export default function Generate() {
               <LineDivider />
               {state === State.GeneratingQuestionsError && (
                 <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
-                  <Error message={error} />
+                  <ErrorComponent message={error} />
                 </div>
               )}
               {state === State.LoadingQuestions && <Loading />}
@@ -119,6 +155,7 @@ export default function Generate() {
               generatedReview={generatedReview}
               handleRequestChanges={handleRequestChanges}
               error={error}
+              handleSaveReview={handleSaveReview}
             />
           )}
           <LineDivider />

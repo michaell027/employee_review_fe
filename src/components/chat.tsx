@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Message } from "@/libs/interfaces/message";
 import { changeReview } from "@/libs/api/review-service";
-import Error from "@/components/error";
+import ErrorComponent from "@/components/error";
 
 enum State {
   WaitingForManagerInput = 0,
@@ -14,9 +14,10 @@ enum State {
 
 interface ChatProps {
   review: string;
+  onSaveReview: (updatedReview: string) => void;
 }
 
-export default function Chat({ review }: ChatProps) {
+export default function Chat({ review, onSaveReview }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     { content: review, role: "user" },
   ]);
@@ -58,6 +59,16 @@ export default function Chat({ review }: ChatProps) {
         { content: "Please enter a message.", role: "system" },
       ]);
       setState(State.WaitingForManagerInput);
+    }
+  };
+
+  const handleSaveReview = () => {
+    const latestAssistantMessage = messages
+      .filter((msg) => msg.role === "assistant")
+      .pop();
+
+    if (latestAssistantMessage) {
+      onSaveReview(latestAssistantMessage.content);
     }
   };
 
@@ -122,16 +133,19 @@ export default function Chat({ review }: ChatProps) {
             onClick={handleDecline}
             className="bg-[#ff4694] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#d93a7c] transition-colors"
           >
-            Zamietnuť
+            Decline
           </button>
-          <button className="bg-[#776fff] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#5a54cc] transition-colors">
-            Prijať & Odoslať
+          <button
+            onClick={handleSaveReview}
+            className="bg-[#776fff] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#5a54cc] transition-colors"
+          >
+            Accept & Send
           </button>
         </div>
       )}
       {state === State.ErrorGeneratingReview ? (
         <div className="flex w-full flex-col my-5 space-y-4 items-center justify-center">
-          <Error message="Failed to generate new review." />
+          <ErrorComponent message="Failed to generate new review." />
         </div>
       ) : (
         <div className="flex items-center">

@@ -5,7 +5,7 @@ interface ErrorProps {
   message: string;
 }
 
-export default function Error({ message }: ErrorProps) {
+export default function ErrorComponent({ message }: ErrorProps) {
   return (
     <>
       <Image src="/error.png" alt="error" width={100} height={100} />
