@@ -24,6 +24,7 @@ const getReviewBasedOnEvaluation = async (
   }
 };
 
+//TODO: Change the type of messages to match the type of the messages in the backend
 const changeReview = async (messages: any): Promise<Review | null> => {
   try {
     const response = await api.post<Review>("/review/change", messages, {

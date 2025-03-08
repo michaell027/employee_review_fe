@@ -1,11 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import OllamaFooter from "@/components/ollama-footer";
 import Loading from "@/components/loading";
 import LineDivider from "@/components/line-divider";
 import type { Question } from "@/libs/types/question";
 import { getQuestionsByEmployeeId } from "@/libs/api/questions-service";
-import ErrorComponent from "@/components/error";
 import QuestionsForm from "@/components/questions-form";
 import ReviewHandler from "@/components/review-handler";
 import State from "@/libs/enums/state";
@@ -18,6 +17,17 @@ import type { Review } from "@/libs/types/review";
 import { useSearchParams } from "next/navigation";
 import { useManager } from "@/libs/context/manager-context";
 import ReviewSuccess from "@/components/review-success";
+import { Transition, Dialog } from "@headlessui/react";
+import {
+  ClipboardDocumentCheckIcon,
+  ClipboardDocumentListIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon,
+  ChatBubbleLeftRightIcon,
+  ArrowPathIcon,
+  UserGroupIcon,
+} from "@heroicons/react/24/outline";
+import ErrorComponent from "@/components/error";
 
 export default function Generate() {
   const searchParams = useSearchParams();
@@ -25,6 +35,7 @@ export default function Generate() {
   const [generatedReview, setGeneratedReview] = useState<string>("");
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string>("");
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
   const employeeId = Number(searchParams.get("employeeId"));
   const { selectedManager } = useManager();
 
@@ -54,6 +65,7 @@ export default function Generate() {
     if (evaluation.evaluation.length !== generatedQuestions.length) {
       setError("You must answer all questions.");
       setState(State.GeneratingReviewError);
+      setIsErrorDialogOpen(true);
       return;
     }
     setState(State.GeneratingReview);
@@ -62,6 +74,7 @@ export default function Generate() {
       if (data === null) {
         setError("Failed to generate review.");
         setState(State.GeneratingReviewError);
+        setIsErrorDialogOpen(true);
         return;
       }
 
@@ -99,6 +112,27 @@ export default function Generate() {
     setState(State.Chatting);
   };
 
+  const renderStateIcon = () => {
+    switch (state) {
+      case State.LoadingQuestions:
+        return <ArrowPathIcon className="w-8 h-8 text-[#776fff]" />;
+      case State.QuestionsLoaded:
+        return <ClipboardDocumentListIcon className="w-8 h-8 text-[#776fff]" />;
+      case State.GeneratingReview:
+        return <ArrowPathIcon className="w-8 h-8 text-[#776fff]" />;
+      case State.ReviewGenerated:
+        return (
+          <ClipboardDocumentCheckIcon className="w-8 h-8 text-[#776fff]" />
+        );
+      case State.Chatting:
+        return <ChatBubbleLeftRightIcon className="w-8 h-8 text-[#776fff]" />;
+      case State.ReviewSent:
+        return <CheckCircleIcon className="w-8 h-8 text-green-500" />;
+      default:
+        return <UserGroupIcon className="w-8 h-8 text-[#776fff]" />;
+    }
+  };
+
   return (
     <section
       suppressHydrationWarning={true}
@@ -112,30 +146,67 @@ export default function Generate() {
           <div className="clip-background-color-second" />
         </div>
         <div className="w-full px-24 z-10">
-          {state === State.ReviewSent && (
-            <ReviewSuccess
-              employeeId={employeeId}
-              generatedReview={generatedReview}
-            />
-          )}
-          {(state === State.LoadingQuestions ||
-            state === State.QuestionsLoaded ||
-            state === State.GeneratingReview ||
-            state === State.GeneratingQuestionsError) && (
-            <>
-              <h1 className="text-4xl font-bold text-left tracking-wide">
-                Keep your team on track...
-              </h1>
+          <div className="flex items-center mb-6">
+            {renderStateIcon()}
+            <h1 className="text-4xl font-bold text-left tracking-wide ml-3">
+              {state === State.ReviewSent
+                ? "Review sent successfully!"
+                : "Let's generate a review"}
+            </h1>
+          </div>
+
+          <Transition
+            show={
+              state === State.ReviewSent || state === State.SavingReviewError
+            }
+            as={Fragment}
+            enter="transform transition duration-500 ease-in-out"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="transform duration-300 transition ease-in-out"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
+          >
+            <div>
+              <p className="mt-8 text-xl my-6">
+                Your review has been sent to the employee. You can now return to
+                the dashboard or view the employee&#39;s profile.
+              </p>
+              <LineDivider />
+              {state === State.SavingReviewError ? (
+                <div className="flex items-center justify-center my-12">
+                  <ErrorComponent message={error} />
+                </div>
+              ) : (
+                <ReviewSuccess
+                  employeeId={employeeId}
+                  generatedReview={generatedReview}
+                />
+              )}
+            </div>
+          </Transition>
+
+          <Transition
+            show={
+              state === State.LoadingQuestions ||
+              state === State.QuestionsLoaded ||
+              state === State.GeneratingReview ||
+              state === State.GeneratingQuestionsError
+            }
+            as={Fragment}
+            enter="transform transition duration-500 ease-in-out"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transform duration-300 transition ease-in-out"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div>
               <p className="mt-8 text-xl my-6">
                 Please respond to the questions about your employee to generate
                 a review, then click the button below.
               </p>
               <LineDivider />
-              {state === State.GeneratingQuestionsError && (
-                <div className="flex w-full flex-col my-10 space-y-4 items-center justify-center">
-                  <ErrorComponent message={error} />
-                </div>
-              )}
               {state === State.LoadingQuestions && <Loading />}
               {(state === State.QuestionsLoaded ||
                 state === State.GeneratingReview) && (
@@ -145,19 +216,39 @@ export default function Generate() {
                   handleGenerateReview={handleGenerateReview}
                 />
               )}
-            </>
-          )}
-          {(state === State.ReviewGenerated ||
-            state === State.Chatting ||
-            state === State.GeneratingReviewError) && (
-            <ReviewHandler
-              state={state}
-              generatedReview={generatedReview}
-              handleRequestChanges={handleRequestChanges}
-              error={error}
-              handleSaveReview={handleSaveReview}
-            />
-          )}
+              {state === State.GeneratingQuestionsError && (
+                <div className="flex items-center justify-center my-12">
+                  <ErrorComponent message={error} />
+                </div>
+              )}
+            </div>
+          </Transition>
+
+          <Transition
+            show={
+              state === State.ReviewGenerated ||
+              state === State.Chatting ||
+              state === State.GeneratingReviewError
+            }
+            as={Fragment}
+            enter="transform transition duration-500 ease-in-out"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transform duration-300 transition ease-in-out"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div>
+              <ReviewHandler
+                state={state}
+                generatedReview={generatedReview}
+                handleRequestChanges={handleRequestChanges}
+                error={error}
+                handleSaveReview={handleSaveReview}
+              />
+            </div>
+          </Transition>
+
           <LineDivider />
           <OllamaFooter />
         </div>

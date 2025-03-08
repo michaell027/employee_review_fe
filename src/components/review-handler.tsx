@@ -26,9 +26,6 @@ export default function ReviewHandler({
 
   return (
     <div className="flex flex-col">
-      <h1 className="text-4xl font-bold text-left tracking-wide">
-        Review Generated
-      </h1>
       <p className="text-xl my-6">
         Here is the generated review. You can send it as is or request changes.
       </p>

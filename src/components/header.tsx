@@ -18,7 +18,7 @@ import Image from "next/image";
 import { getAllManagers } from "@/libs/api/manager-service";
 import type { Manager } from "@/libs/interfaces/manager";
 import { useManager } from "@/libs/context/manager-context";
-import { Employee } from "@/libs/interfaces/employee";
+import type { Employee } from "@/libs/interfaces/employee";
 import { getManagerEmployees } from "@/libs/api/employee-service";
 import Link from "next/link";
 
@@ -31,16 +31,26 @@ export default function Header() {
   const [testManagers, setTestManagers] = useState<Manager[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(true);
+
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchManagers = async () => {
-      const data = await getAllManagers();
-      if (data === null || data.length === 0) {
-        throw new Error("Failed to fetch managers.");
+      try {
+        const data = await getAllManagers();
+        if (data === null || data.length === 0) {
+          setError("Failed to fetch managers.");
+          setTestManagers([]);
+        } else {
+          setTestManagers(data);
+          setError("");
+        }
+      } catch {
+        setError("Failed to fetch managers.");
+        setTestManagers([]);
+      } finally {
+        setIsLoading(false);
       }
-      setTestManagers(data);
-      setIsLoading(false);
     };
 
     fetchManagers().then(() => {});
@@ -109,7 +119,13 @@ export default function Header() {
             >
               {employees.length === 0 && !isLoadingEmployees && (
                 <div className="p-4">
-                  <p className="text-gray-600">No employees found.</p>
+                  {error ? (
+                    <div className="text-red-500 font-medium">
+                      <p>{error}</p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">No employees found.</p>
+                  )}
                 </div>
               )}
               {isLoadingEmployees && (
@@ -126,10 +142,9 @@ export default function Header() {
                         className="group relative flex items-center gap-x-6 rounded-md p-4 text-sm/6 hover:bg-gray-50"
                       >
                         <div className="flex size-11 flex-none items-center justify-center rounded-md bg-gray-50 group-hover:bg-white">
-                          {/*<item.icon*/}
-                          {/*  aria-hidden="true"*/}
-                          {/*  className="size-6 text-gray-600 group-hover:text-indigo-600"*/}
-                          {/*/>*/}
+                          <span className="text-lg font-medium text-gray-600 group-hover:text-indigo-600">
+                            {employee.name.charAt(0)}
+                          </span>
                         </div>
                         <div className="flex-auto">
                           <Link
@@ -163,6 +178,8 @@ export default function Header() {
             <PopoverButton className="flex items-center gap-x-1 text-sm/6 font-semibold text-gray-900">
               {isLoading ? (
                 <span className="inline-block w-20 h-5 bg-gray-200 rounded animate-pulse"></span>
+              ) : error && testManagers.length === 0 ? (
+                <span className="text-red-500">Error loading users</span>
               ) : selectedManager ? (
                 selectedManager.name
               ) : (
@@ -207,6 +224,13 @@ export default function Header() {
                     </div>
                   </div>
                 ))}
+                {testManagers.length === 0 && !isLoading && (
+                  <div className="p-2">
+                    <p className="text-red-500 font-medium">
+                      Failed to fetch managers.
+                    </p>
+                  </div>
+                )}
               </div>
             </PopoverPanel>
           </Popover>
@@ -248,6 +272,8 @@ export default function Header() {
                   <DisclosureButton className="group flex w-full items-center justify-between rounded-md py-2 pl-3 pr-3.5 text-base/7 font-semibold text-gray-900 hover:bg-gray-50">
                     {isLoading ? (
                       <span className="inline-block w-20 h-5 bg-gray-200 rounded animate-pulse"></span>
+                    ) : error && testManagers.length === 0 ? (
+                      <span className="text-red-500">Error loading users</span>
                     ) : selectedManager ? (
                       selectedManager.name
                     ) : (
