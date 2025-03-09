@@ -34,6 +34,7 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  // TODO: if there will be an error, manager can decide if he wants to send the review or not
   const handleDecline = () => {
     setState(State.WaitingForManagerInput);
     setNewMessage("");

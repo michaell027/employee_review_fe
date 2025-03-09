@@ -5,7 +5,6 @@ import LineDivider from "@/components/line-divider";
 import { Fragment } from "react";
 import { Transition } from "@headlessui/react";
 import {
-  DocumentTextIcon,
   ArrowLeftIcon,
   UserCircleIcon,
   CheckCircleIcon,
