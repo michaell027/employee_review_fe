@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, Fragment } from "react";
 import OllamaFooter from "@/components/ollama-footer";
 import Loading from "@/components/loading";

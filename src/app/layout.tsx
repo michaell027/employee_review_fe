@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Azeret_Mono as Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
-import type React from "react";
+import React, { Suspense } from "react";
 import { ManagerProvider } from "@/libs/context/manager-context";
 
 const geistSans = Geist({
@@ -30,10 +30,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ManagerProvider>
-          <Header />
-          <main>{children}</main>
-        </ManagerProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ManagerProvider>
+            <Header />
+            <main>{children}</main>
+          </ManagerProvider>
+        </Suspense>
       </body>
     </html>
   );
