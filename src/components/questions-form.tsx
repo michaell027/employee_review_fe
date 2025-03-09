@@ -1,7 +1,15 @@
-import { Question } from "@/libs/types/question";
+"use client";
+
+import type { Question } from "@/libs/types/question";
 import { useForm } from "react-hook-form";
 import State from "@/libs/enums/state";
-import { Evaluation } from "@/libs/interfaces/evaluation";
+import type { Evaluation } from "@/libs/interfaces/evaluation";
+import {
+  DocumentTextIcon,
+  SparklesIcon,
+  ExclamationCircleIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
 
 interface QuestionsFormProps {
   state: State;
@@ -32,56 +40,60 @@ export default function QuestionsForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 my-8">
       {generatedQuestions.map((q, idx) => (
-        <div key={idx}>
-          <p className="text-lg mt-6 mb-2">{q}</p>
-          <div className="pb-2">
-            <textarea
-              id={`question_${idx}`}
-              placeholder="Enter your response here..."
-              rows={2}
-              className={`block text-black w-full p-2 rounded-md ${errors[`question_${idx}`] ? "border-red-500" : ""}`}
-              {...register(`question_${idx}`, {
-                required: "This field is required",
-              })}
-            />
-            {errors[`question_${idx}`] && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors[`question_${idx}`]?.message as string}
-              </p>
-            )}
+        <div key={idx} className="bg-[#1a2035] rounded-lg p-5 shadow-xl">
+          <div className="flex items-start mb-3">
+            <DocumentTextIcon className="h-6 w-6 text-white mr-2 mt-1 flex-shrink-0" />
+            <h3 className="text-lg font-medium text-white">{q}</h3>
+          </div>
+
+          <div className="mt-4">
+            <div className="relative">
+              <textarea
+                id={`question_${idx}`}
+                placeholder="Enter your response here..."
+                rows={3}
+                className={`block w-full p-3 bg-[#121828] text-white rounded-lg border-2 ${
+                  errors[`question_${idx}`]
+                    ? "border-red-500"
+                    : "border-[#312343]"
+                } focus:outline-none focus:border-[#776fff] transition-colors duration-200`}
+                {...register(`question_${idx}`, {
+                  required: "This field is required",
+                })}
+              />
+
+              {errors[`question_${idx}`] && (
+                <div className="flex items-center mt-2 text-[#ff4694]">
+                  <ExclamationCircleIcon className="h-5 w-5 mr-1" />
+                  <p className="text-sm">
+                    {errors[`question_${idx}`]?.message as string}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ))}
-      <div className="flex mt-6 justify-start">
-        <div className="text-white px-1 rounded-md mr-4">
-          <svg
-            width="20px"
-            height="20px"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            stroke="currentColor"
-            className={`size-10 ${state !== State.GeneratingReview ? "animate-bounce-horizontal" : ""}`}
-          >
-            <path
-              d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z"
-              stroke="#ffffff"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
+
+      <div className="flex justify-start mt-8">
         <button
           type="submit"
-          className="bg-white mb-8 text-black px-4 py-2 rounded-md"
+          className="inline-flex items-center px-5 py-2.5 bg-[#776fff] hover:bg-[#6258d3] text-white rounded-lg font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-[#776fff] focus:ring-offset-2 focus:ring-offset-[#1a2035] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           disabled={state === State.GeneratingReview}
         >
-          {state === State.GeneratingReview
-            ? "Generating..."
-            : "Generate Review"}
+          {state === State.GeneratingReview ? (
+            <>
+              <SparklesIcon className="h-5 w-5 mr-2 animate-pulse" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <PaperAirplaneIcon className="h-5 w-5 mr-2" />
+              Generate Review
+            </>
+          )}
         </button>
       </div>
     </form>

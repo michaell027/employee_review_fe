@@ -17,11 +17,10 @@ import type { Review } from "@/libs/types/review";
 import { useSearchParams } from "next/navigation";
 import { useManager } from "@/libs/context/manager-context";
 import ReviewSuccess from "@/components/review-success";
-import { Transition, Dialog } from "@headlessui/react";
+import { Transition } from "@headlessui/react";
 import {
   ClipboardDocumentCheckIcon,
   ClipboardDocumentListIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon,
   ChatBubbleLeftRightIcon,
   ArrowPathIcon,
@@ -35,7 +34,6 @@ export default function Generate() {
   const [generatedReview, setGeneratedReview] = useState<string>("");
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string>("");
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
   const employeeId = Number(searchParams.get("employeeId"));
   const { selectedManager } = useManager();
 
@@ -65,7 +63,6 @@ export default function Generate() {
     if (evaluation.evaluation.length !== generatedQuestions.length) {
       setError("You must answer all questions.");
       setState(State.GeneratingReviewError);
-      setIsErrorDialogOpen(true);
       return;
     }
     setState(State.GeneratingReview);
@@ -74,7 +71,6 @@ export default function Generate() {
       if (data === null) {
         setError("Failed to generate review.");
         setState(State.GeneratingReviewError);
-        setIsErrorDialogOpen(true);
         return;
       }
 

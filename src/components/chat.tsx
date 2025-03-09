@@ -1,9 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import type { Message } from "@/libs/interfaces/message";
 import { changeReview } from "@/libs/api/review-service";
 import ErrorComponent from "@/components/error";
+import { Transition } from "@headlessui/react";
+import {
+  PaperAirplaneIcon,
+  ChatBubbleLeftIcon,
+  UserCircleIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 enum State {
   WaitingForManagerInput = 0,
@@ -24,10 +32,14 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
   const [state, setState] = useState<State>(State.WaitingForManagerInput);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleDecline = () => {
     setState(State.WaitingForManagerInput);
     setNewMessage("");
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const handleSendMessage = () => {
@@ -74,118 +86,136 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
 
   useEffect(() => {
     if (messagesEndRef.current) {
-      const lastMessage = messagesEndRef.current
-        .previousElementSibling as HTMLElement;
-      if (lastMessage) {
-        window.scrollBy({
-          top: lastMessage.offsetHeight + 16,
-          behavior: "smooth",
-        });
-      }
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, []);
+  }, [messages]);
 
   return (
-    <div className="flex flex-col mt-6 pb-10">
-      <div className="flex-1 p-4">
-        <div className="flex flex-col space-y-4">
+    <div className="flex flex-col my-6 pb-10 rounded-lg p-5">
+      <div className="">
+        <div className="flex flex-col space-y-4 overflow-y-auto">
           {messages.map((message, index) => (
-            <div
+            <Transition
               key={index}
-              className={`flex ${message.role === "user" ? "justify-end" : ""}`}
+              as={Fragment}
+              show={true}
+              enter="transition ease-out duration-200"
+              enterFrom="opacity-0 translate-y-1"
+              enterTo="opacity-100 translate-y-0"
+              leave="transition ease-in duration-150"
+              leaveFrom="opacity-100 translate-y-0"
+              leaveTo="opacity-0 translate-y-1"
             >
               <div
-                className={`text-white text-lg shadow-2xl ${
-                  message.role === "user" ? "bg-[#312343]" : "bg-[#121828]"
-                } text-black px-4 py-3 rounded-md max-w-2xl`}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                {message.content}
+                <div className="flex items-start space-x-2">
+                  {message.role !== "user" && (
+                    <div className="flex-shrink-0 mt-1">
+                      <ChatBubbleLeftIcon className="h-5 w-5 text-white" />
+                    </div>
+                  )}
+                  <div
+                    className={`text-white px-4 py-3 rounded-lg shadow-md ${
+                      message.role === "user"
+                        ? "bg-[#1a2035] rounded-tr-none"
+                        : message.role === "system"
+                          ? "bg-[#ff4694]/50 border border-[#ff4694]/30"
+                          : "bg-[#121828]/70 rounded-tl-none"
+                    } max-w-2xl`}
+                  >
+                    {message.content}
+                  </div>
+                  {message.role === "user" && (
+                    <div className="flex-shrink-0 mt-1">
+                      <UserCircleIcon className="h-5 w-5 text-white" />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </Transition>
           ))}
+
           {state === State.GeneratingNewReview && (
-            <div className="flex">
-              <div className="text-white text-lg shadow-2xl bg-[#121828] px-4 py-3 rounded-md max-w-2xl">
-                <div className="flex items-center">
-                  <span className="bounce-dot">.</span>
-                  <span
-                    className="bounce-dot"
-                    style={{ animationDelay: "0.2s" }}
-                  >
-                    .
-                  </span>
-                  <span
-                    className="bounce-dot"
-                    style={{ animationDelay: "0.4s" }}
-                  >
-                    .
-                  </span>
+            <div className="flex justify-start">
+              <div className="flex items-start space-x-2">
+                <div className="flex-shrink-0 mt-1">
+                  <ChatBubbleLeftIcon className="h-5 w-5 text-white" />
+                </div>
+                <div className="bg-[#121828]/70 text-white px-4 py-3 rounded-lg rounded-tl-none shadow-md">
+                  <div className="flex items-center space-x-1">
+                    <div
+                      className="w-2 h-2 bg-[#776fff] rounded-full animate-bounce"
+                      style={{ animationDelay: "0s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-[#776fff] rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-[#776fff] rounded-full animate-bounce"
+                      style={{ animationDelay: "0.4s" }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
+
           <div ref={messagesEndRef} />
         </div>
       </div>
+
       {state === State.WaitingForApproval && (
-        <div className="mt-4 gap-3 flex justify-end">
+        <div className="mt-6 gap-4 flex justify-end">
           <button
             onClick={handleDecline}
-            className="bg-[#ff4694] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#d93a7c] transition-colors"
+            className="inline-flex items-center bg-[#312343] text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:bg-[#3e2c56] focus:outline-none focus:ring-2 focus:ring-[#776fff] focus:ring-offset-2 focus:ring-offset-[#1a2035] transition-colors duration-200"
           >
+            <XMarkIcon className="h-5 w-5 mr-2" />
             Decline
           </button>
           <button
             onClick={handleSaveReview}
-            className="bg-[#776fff] mb-8 text-white px-4 py-2 rounded-md hover:bg-[#5a54cc] transition-colors"
+            className="inline-flex items-center bg-[#776fff] text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:bg-[#6258d3] focus:outline-none focus:ring-2 focus:ring-[#776fff] focus:ring-offset-2 focus:ring-offset-[#1a2035] transition-colors duration-200"
           >
+            <CheckIcon className="h-5 w-5 mr-2" />
             Accept & Send
           </button>
         </div>
       )}
+
       {state === State.ErrorGeneratingReview ? (
         <div className="flex w-full flex-col my-5 space-y-4 items-center justify-center">
           <ErrorComponent message="Failed to generate new review." />
         </div>
       ) : (
-        <div className="flex items-center">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder="Čo chcete zmeniť?"
-            className="text-black rounded-md px-4 py-3 block w-full focus:outline-none"
-            disabled={
-              state === State.WaitingForApproval ||
-              state === State.GeneratingNewReview
-            }
-          />
-          <button
-            onClick={handleSendMessage}
-            className="bg-[#121828] hover:bg-[#312343] shadow-2xl text-white rounded-full p-3 ml-2 focus:outline-none"
-            disabled={
-              state === State.WaitingForApproval ||
-              state === State.GeneratingNewReview
-            }
-          >
-            <svg
-              width="20px"
-              height="20px"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              stroke="#ffffff"
+        <div className="mt-6">
+          <div className="relative flex items-center">
+            <input
+              ref={inputRef}
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder="What would you like to change?"
+              className="bg-[#121828] text-white rounded-xl px-5 py-4 pr-14 block w-full shadow-inner border-0 focus:ring-2 focus:ring-[#776fff] focus:outline-none transition-all duration-200"
+              disabled={
+                state === State.WaitingForApproval ||
+                state === State.GeneratingNewReview
+              }
+            />
+            <button
+              onClick={handleSendMessage}
+              className="absolute right-2 bg-[#776fff] hover:bg-[#6258d3] text-white rounded-lg p-2.5 shadow-md focus:outline-none focus:ring-2 focus:ring-white transition-colors duration-200 disabled:opacity-50"
+              disabled={
+                state === State.WaitingForApproval ||
+                state === State.GeneratingNewReview
+              }
             >
-              <path
-                d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z"
-                stroke="#ffffff"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <PaperAirplaneIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       )}
     </div>
