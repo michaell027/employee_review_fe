@@ -22,8 +22,6 @@ import type { Employee } from "@/libs/interfaces/employee";
 import { getManagerEmployees } from "@/libs/api/employee-service";
 import Link from "next/link";
 
-//TODO: In other components use @headlessui/react and @heroicons/react as well
-
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

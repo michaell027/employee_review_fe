@@ -9,7 +9,7 @@ const api = axios.create({
 
 const getAllManagers = async (): Promise<Manager[] | null> => {
   try {
-    const response = await api.get<Manager[]>("/managers");
+    const response = await api.get<Manager[]>("managers");
     return response.data;
   } catch {
     return null;
