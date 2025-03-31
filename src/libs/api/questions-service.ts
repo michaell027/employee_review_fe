@@ -11,7 +11,7 @@ const getQuestionsByEmployeeId = async (
   employeeId: number,
 ): Promise<Question[] | null> => {
   try {
-    const response = await api.get<Question[]>("/questions", {
+    const response = await api.get<Question[]>("questions", {
       params: { employee_id: employeeId },
     });
     return response.data;

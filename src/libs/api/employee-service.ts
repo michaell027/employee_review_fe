@@ -13,7 +13,7 @@ const getManagerEmployees = async (
 ): Promise<Employee[] | null> => {
   try {
     const response = await api.get<Employee[]>(
-      `/managers/${managerId}/employees`,
+      `managers/${managerId}/employees`,
     );
     return response.data;
   } catch {
@@ -25,7 +25,7 @@ const getEmployeeById = async (
   employeeId: number,
 ): Promise<EmployeeProfile | null> => {
   try {
-    const response = await api.get<EmployeeProfile>(`/employees/${employeeId}`);
+    const response = await api.get<EmployeeProfile>(`employees/${employeeId}`);
     return response.data;
   } catch {
     return null;

@@ -28,7 +28,7 @@ const getReviewBasedOnEvaluation = async (
 //eslint-disable-next-line
 const changeReview = async (messages: any): Promise<Review | null> => {
   try {
-    const response = await api.post<Review>("/review/change", messages, {
+    const response = await api.post<Review>("review/change", messages, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -47,7 +47,7 @@ const saveReview = async (
 ): Promise<string | null> => {
   try {
     const response = await api.post<Review>(
-      `/employees/${employeeId}/review`,
+      `employees/${employeeId}/review`,
       { review, managerId },
       {
         headers: {
