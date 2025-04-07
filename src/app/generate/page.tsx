@@ -31,8 +31,10 @@ import ErrorComponent from "@/components/error";
 
 export default function Generate() {
   const searchParams = useSearchParams();
-  const [state, setState] = useState<State>(State.LoadingQuestions);
-  const [generatedReview, setGeneratedReview] = useState<string>("");
+  const [state, setState] = useState<State>(State.Chatting);
+  const [generatedReview, setGeneratedReview] = useState<string>(
+    "Overall, you have demonstrated a strong work ethic and a range of skills that contribute to your performance. Your ability to achieve several goals and objectives since joining the company is noteworthy, and it's clear that you're committed to making a positive impact. You also excel at working effectively with others to achieve common goals, which is essential for success in our team. One area where you may want to focus on improving is addressing specific challenges or issues that arise. While you've made significant contributions to resolving certain problems through your work, there are still opportunities for growth and development here. In the coming months, you'll be working towards several key targets, so be sure to prioritize these goals and stay focused on achieving them. Keep up the good work! You have a lot of potential and I'm excited to see your continued growth and success.",
+  );
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string>("");
   const employeeId = Number(searchParams.get("employeeId"));

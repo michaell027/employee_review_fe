@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, Fragment } from "react";
 import type { Message } from "@/libs/interfaces/message";
-import { changeReview } from "@/libs/api/review-service";
 import ErrorComponent from "@/components/error";
 import { Transition } from "@headlessui/react";
 import {
@@ -13,7 +12,10 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
+const WS_URL = "ws://127.0.0.1:8000/ws";
+
 enum State {
+  Loading = -1,
   WaitingForManagerInput = 0,
   GeneratingNewReview = 1,
   WaitingForApproval = 2,
@@ -25,26 +27,25 @@ interface ChatProps {
   onSaveReview: (updatedReview: string) => void;
 }
 
+// TODO: remove comments
+
 export default function Chat({ review, onSaveReview }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     { content: review, role: "user" },
   ]);
+  const [response, setResponse] = useState<string | null>(null);
   const [state, setState] = useState<State>(State.WaitingForManagerInput);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [generatingStarted, setGeneratingStarted] = useState(false);
 
-  // TODO: if there will be an error, manager can decide if he wants to send the review or not
-  const handleDecline = () => {
-    setState(State.WaitingForManagerInput);
-    setNewMessage("");
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
+  const socketRef = useRef<WebSocket | null>(null);
+  const [lastMessage, setLastMessage] = useState<MessageEvent | null>(null);
 
   const handleSendMessage = () => {
-    setState(State.GeneratingNewReview);
+    setState(State.Loading);
+
     if (newMessage.trim()) {
       const updatedMessages: Message[] = [
         ...messages,
@@ -54,14 +55,48 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
       setMessages(updatedMessages);
       setNewMessage("");
 
-      changeReview(updatedMessages).then((data) => {
-        if (data === null) {
-          setState(State.ErrorGeneratingReview);
-          return;
+      socketRef.current = new WebSocket(WS_URL);
+
+      socketRef.current.onopen = () => {
+        console.log("WebSocket connection opened");
+        if (
+          socketRef.current &&
+          socketRef.current.readyState === WebSocket.OPEN
+        ) {
+          socketRef.current.send(JSON.stringify(updatedMessages));
         }
-        setMessages([...updatedMessages, { content: data, role: "assistant" }]);
-        setState(State.WaitingForApproval);
-      });
+      };
+
+      socketRef.current.onmessage = (message) => {
+        setState(State.GeneratingNewReview);
+        setLastMessage(message);
+        setResponse((prev) => (prev ? prev + message.data : message.data));
+        console.log("WebSocket message received:", message.data);
+
+        if (message.data.includes("}")) {
+          setState(State.WaitingForApproval);
+          setGeneratingStarted(false);
+          setResponse(null);
+
+          if (socketRef.current) {
+            socketRef.current.close();
+            console.log("WebSocket connection closed after receiving response");
+          }
+        }
+      };
+
+      socketRef.current.onerror = () => {
+        setResponse(null);
+        setState(State.ErrorGeneratingReview);
+
+        if (socketRef.current) {
+          socketRef.current.close();
+        }
+      };
+
+      socketRef.current.onclose = () => {
+        console.log("WebSocket connection closed");
+      };
     } else {
       if (messages.at(-1)?.content === "Please enter a message.") {
         setState(State.WaitingForManagerInput);
@@ -72,6 +107,88 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
         { content: "Please enter a message.", role: "system" },
       ]);
       setState(State.WaitingForManagerInput);
+    }
+  };
+
+  useEffect(() => {
+    const messageIndex =
+      messages.findLastIndex((msg) => msg.role === "user") + 1;
+    if (lastMessage?.data) {
+      if (response?.replace(/\s/g, "").startsWith('{"review":"')) {
+        if (!generatingStarted) {
+          const temp = response.replace(/\s/g, "").split('"review":"')[1];
+          console.log("temp", temp);
+          setMessages((prev) => [
+            ...prev,
+            { content: temp, role: "assistant" },
+          ]);
+          setGeneratingStarted(true);
+        } else {
+          if (
+            lastMessage.data.includes('"') ||
+            lastMessage.data.includes("}")
+          ) {
+            if (
+              lastMessage.data.replace(/\s/g, "").includes('"') &&
+              lastMessage.data.replace(/\s/g, "").includes("}")
+            ) {
+              const temp = lastMessage.data.split('"')[0];
+              console.log("temp", temp);
+              setMessages((prev) => {
+                const updatedMessages = [...prev];
+                updatedMessages[messageIndex] = {
+                  content: prev[messageIndex].content + temp,
+                  role: "assistant",
+                };
+                return updatedMessages;
+              });
+            }
+            if (lastMessage.data.replace(/\s/g, "").includes('"')) {
+              const temp = lastMessage.data.split('"')[0];
+              console.log("temp", temp);
+              setMessages((prev) => {
+                const updatedMessages = [...prev];
+                updatedMessages[messageIndex] = {
+                  content: prev[messageIndex].content + temp,
+                  role: "assistant",
+                };
+                return updatedMessages;
+              });
+            }
+            if (lastMessage.data.replace(/\s/g, "").includes("}")) {
+              const temp = lastMessage.data.split("}")[0];
+              console.log("temp", temp);
+              setMessages((prev) => {
+                const updatedMessages = [...prev];
+                updatedMessages[messageIndex] = {
+                  content: prev[messageIndex].content + temp,
+                  role: "assistant",
+                };
+                return updatedMessages;
+              });
+            }
+          } else {
+            console.log("lastMessage.data", lastMessage.data);
+            setMessages((prev) => {
+              const updatedMessages = [...prev];
+              updatedMessages[messageIndex] = {
+                content: prev[messageIndex].content + lastMessage.data,
+                role: "assistant",
+              };
+              return updatedMessages;
+            });
+          }
+        }
+      }
+    }
+  }, [lastMessage]);
+
+  // TODO: if there will be an error, manager can decide if he wants to send the review or not
+  const handleDecline = () => {
+    setState(State.WaitingForManagerInput);
+    setNewMessage("");
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
@@ -90,6 +207,14 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col my-6 pb-10 rounded-lg p-5">
@@ -137,7 +262,7 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
             </Transition>
           ))}
 
-          {state === State.GeneratingNewReview && (
+          {state === State.Loading && (
             <div className="flex justify-start">
               <div className="flex items-start space-x-2">
                 <div className="flex-shrink-0 mt-1">
@@ -203,7 +328,8 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
               className="bg-[#121828] text-white rounded-xl px-5 py-4 pr-14 block w-full shadow-inner border-0 focus:ring-2 focus:ring-[#776fff] focus:outline-none transition-all duration-200"
               disabled={
                 state === State.WaitingForApproval ||
-                state === State.GeneratingNewReview
+                state === State.GeneratingNewReview ||
+                state === State.Loading
               }
             />
             <button
