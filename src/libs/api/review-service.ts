@@ -24,22 +24,6 @@ const getReviewBasedOnEvaluation = async (
   }
 };
 
-//TODO: Change the type of messages to match the type of the messages in the backend
-//eslint-disable-next-line
-const changeReview = async (messages: any): Promise<Review | null> => {
-  try {
-    const response = await api.post<Review>("review/change", messages, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    return response.data;
-  } catch {
-    return null;
-  }
-};
-
 const saveReview = async (
   review: string,
   employeeId: number,
@@ -62,4 +46,4 @@ const saveReview = async (
   }
 };
 
-export { getReviewBasedOnEvaluation, changeReview, saveReview };
+export { getReviewBasedOnEvaluation, saveReview };

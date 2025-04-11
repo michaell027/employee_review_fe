@@ -12,7 +12,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-const WS_URL = "ws://127.0.0.1:8000/ws";
+const WS_URL = `$ws://${process.env.NEXT_PUBLIC_API_DOMAIN}/ws`;
 
 enum State {
   Loading = -1,
