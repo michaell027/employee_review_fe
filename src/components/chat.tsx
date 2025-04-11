@@ -12,7 +12,9 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-const WS_URL = process.env.NEXT_PUBLIC_API_DOMAIN;
+const WS_URL = process.env.NEXT_PUBLIC_API_DOMAIN?.startsWith("wss://")
+  ? process.env.NEXT_PUBLIC_API_DOMAIN
+  : `wss://${process.env.NEXT_PUBLIC_API_DOMAIN}`;
 
 enum State {
   Loading = -1,
