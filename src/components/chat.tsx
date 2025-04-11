@@ -12,7 +12,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-const WS_URL = `$ws://${process.env.NEXT_PUBLIC_API_DOMAIN}/ws`;
+const WS_URL = process.env.NEXT_PUBLIC_API_DOMAIN;
 
 enum State {
   Loading = -1,
@@ -55,7 +55,7 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
       setMessages(updatedMessages);
       setNewMessage("");
 
-      socketRef.current = new WebSocket(WS_URL);
+      socketRef.current = new WebSocket(WS_URL!);
 
       socketRef.current.onopen = () => {
         console.log("WebSocket connection opened");
