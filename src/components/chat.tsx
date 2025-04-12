@@ -29,8 +29,6 @@ interface ChatProps {
   onSaveReview: (updatedReview: string) => void;
 }
 
-// TODO: remove comments
-
 export default function Chat({ review, onSaveReview }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     { content: review, role: "user" },
@@ -73,7 +71,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
         setState(State.GeneratingNewReview);
         setLastMessage(message);
         setResponse((prev) => (prev ? prev + message.data : message.data));
-        console.log("WebSocket message received:", message.data);
 
         if (message.data.includes("}")) {
           setState(State.WaitingForApproval);
@@ -119,7 +116,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
       if (response?.replace(/\s/g, "").startsWith('{"review":"')) {
         if (!generatingStarted) {
           const temp = response.replace(/\s/g, "").split('"review":"')[1];
-          console.log("temp", temp);
           setMessages((prev) => [
             ...prev,
             { content: temp, role: "assistant" },
@@ -135,7 +131,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
               lastMessage.data.replace(/\s/g, "").includes("}")
             ) {
               const temp = lastMessage.data.split('"')[0];
-              console.log("temp", temp);
               setMessages((prev) => {
                 const updatedMessages = [...prev];
                 updatedMessages[messageIndex] = {
@@ -147,7 +142,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
             }
             if (lastMessage.data.replace(/\s/g, "").includes('"')) {
               const temp = lastMessage.data.split('"')[0];
-              console.log("temp", temp);
               setMessages((prev) => {
                 const updatedMessages = [...prev];
                 updatedMessages[messageIndex] = {
@@ -159,7 +153,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
             }
             if (lastMessage.data.replace(/\s/g, "").includes("}")) {
               const temp = lastMessage.data.split("}")[0];
-              console.log("temp", temp);
               setMessages((prev) => {
                 const updatedMessages = [...prev];
                 updatedMessages[messageIndex] = {
@@ -170,7 +163,6 @@ export default function Chat({ review, onSaveReview }: ChatProps) {
               });
             }
           } else {
-            console.log("lastMessage.data", lastMessage.data);
             setMessages((prev) => {
               const updatedMessages = [...prev];
               updatedMessages[messageIndex] = {
